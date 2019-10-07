@@ -32,6 +32,9 @@ import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
+
+import org.apache.http.HttpStatus;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;

@@ -157,6 +157,20 @@ public class HttpClientStack implements HttpStack {
             throws AuthFailureError {
         byte[] body = request.getBody();
         if (body != null) {
+
+            //add by hsl 加密post参数
+            try{
+
+                if(request.getEnCode()){
+                    String string = new String(body, "UTF-8");
+                    string = "ENCODE_DATA="+TypeUtil.ObjectToString(UserAppEnv.getAppEnv().jniCall("3", string));
+                    body = string.getBytes("UTF-8");
+                }
+            }
+            catch(IOException e){
+                //e.printStackTrace();
+            }
+
             HttpEntity entity = new ByteArrayEntity(body);
             httpRequest.setEntity(entity);
         }

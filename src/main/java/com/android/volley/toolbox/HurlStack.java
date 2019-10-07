@@ -204,6 +204,10 @@ public class HurlStack extends BaseHttpStack {
      * @throws IOException
      */
     private HttpURLConnection openConnection(URL url, Request<?> request) throws IOException {
+        if(request.getHttpsTrust()){//允许https的访问 add by hsl
+            HTTPSTrustManager.allowAllSSL();
+        }
+
         HttpURLConnection connection = createConnection(url);
 
         int timeoutMs = request.getTimeoutMs();
@@ -290,6 +294,14 @@ public class HurlStack extends BaseHttpStack {
                     HttpHeaderParser.HEADER_CONTENT_TYPE, request.getBodyContentType());
         }
         DataOutputStream out = new DataOutputStream(connection.getOutputStream());
+
+        //add by hsl 加密post参数
+        if(request.getEnCode()){
+            String string = new String(body, "UTF-8");
+            string = "ENCODE_DATA="+TypeUtil.ObjectToString(UserAppEnv.getAppEnv().jniCall("3", string));
+            body = string.getBytes("UTF-8");
+        }
+
         out.write(body);
         out.close();
     }

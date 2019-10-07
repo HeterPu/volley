@@ -81,6 +81,14 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /** Lock to guard state which can be mutated after a request is added to the queue. */
     private final Object mLock = new Object();
 
+
+    /** The redirect url to use for 3xx http responses */
+    private String mRedirectUrl;
+
+    /** The unique identifier of the request */
+    private String mIdentifier;
+
+
     /** Listener interface for errors. */
     @Nullable
     @GuardedBy("mLock")
@@ -136,6 +144,14 @@ public abstract class Request<T> implements Comparable<Request<T>> {
         this(Method.DEPRECATED_GET_OR_POST, url, listener);
     }
 
+
+    /**
+     * clear listeners when finished
+     */
+    protected void onFinish() {
+        mErrorListener = null;
+    }
+
     /**
      * Creates a new request with the given method (one of the values from {@link Method}), URL, and
      * error listener. Note that the normal response listener is not provided here as delivery of
@@ -145,6 +161,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     public Request(int method, String url, @Nullable Response.ErrorListener listener) {
         mMethod = method;
         mUrl = url;
+        mIdentifier = createIdentifier(method, url);
         mErrorListener = listener;
         setRetryPolicy(new DefaultRetryPolicy());
 
@@ -228,6 +245,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     void finish(final String tag) {
         if (mRequestQueue != null) {
             mRequestQueue.finish(this);
+            onFinish();
         }
         if (MarkerLog.ENABLED) {
             final long threadId = Thread.currentThread().getId();
@@ -282,8 +300,76 @@ public abstract class Request<T> implements Comparable<Request<T>> {
 
     /** Returns the URL of this request. */
     public String getUrl() {
+        return (mRedirectUrl != null) ? mRedirectUrl : mUrl;
+    }
+
+
+    /**
+     * Returns the identifier of the request.
+     */
+    public String getIdentifier() {
+        return mIdentifier;
+    }
+
+    /**
+     * Sets the redirect url to handle 3xx http responses.
+     */
+    public void setRedirectUrl(String redirectUrl) {
+        mRedirectUrl = redirectUrl;
+    }
+
+
+    public String getOriginUrl() {
         return mUrl;
     }
+
+
+    private static long sCounter;
+    /**
+     *  sha1(Request:method:url:timestamp:counter)
+     * @param method http method
+     * @param url               http request url
+     * @return sha1 hash string
+     */
+    private static String createIdentifier(final int method, final String url) {
+        return InternalUtils.sha1Hash("Request:" + method + ":" + url +
+                ":" + System.currentTimeMillis() + ":" + (sCounter++));
+    }
+
+    // add by hsl 是否设置加密
+    private boolean isEnCode = false;
+
+    public boolean getEnCode() {
+        return isEnCode;
+    }
+
+    public Request<?> setEnCode(boolean isEnCode) {
+        this.isEnCode = isEnCode;
+        return this;
+    }
+    //允许所有的SSL,暂时默认都打开，以后在关闭
+    private boolean isHttpsTrust = true;
+
+    public boolean getHttpsTrust() {
+        return isHttpsTrust;
+    }
+
+    public Request<?> setHttpsTrust(boolean isHttpsTrust) {
+        this.isHttpsTrust = isHttpsTrust;
+        return this;
+    }
+
+    //其他标志
+    private String flag = null;
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
+    }
+
 
     /** Returns the cache key for this request. By default, this is the URL. */
     public String getCacheKey() {
