@@ -34,6 +34,10 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
 
+
+import com.pdragon.common.UserAppEnv;
+import com.pdragon.common.utils.TypeUtil;
+
 /** A {@link BaseHttpStack} based on {@link HttpURLConnection}. */
 public class HurlStack extends BaseHttpStack {
 

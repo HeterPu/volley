@@ -42,6 +42,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import com.pdragon.common.UserAppEnv;
+import com.pdragon.common.utils.TypeUtil;
+
 /**
  * An HttpStack that performs request over an {@link HttpClient}.
  *
